@@ -42,61 +42,50 @@ fi
 # nix-env -iA nixos.git
 
 # Partitioning
-printf "Partitioning ...\n"
+printf "\nPartitioning ...\n"
 parted "${DEVICE}" -- mklabel gpt
 parted "${DEVICE}" -- mkpart root btrfs 512MB 100%
 parted "${DEVICE}" -- mkpart ESP fat32 1MB 512MB
 parted "${DEVICE}" -- set 2 esp on
 
 # Formatting
-printf "Formating ...\n"
+printf "\nFormating ...\n"
 mkfs.btrfs -L nixos "${DEVICE}1"
 mkfs.fat -F 32 -n boot "${DEVICE}2"
 
 ## create subvolumes
-printf "Creating btrfs subvolumes ...\n"
+printf "\nCreating btrfs subvolumes ...\n"
 mount -L nixos /mnt  # mount /dev/disk/by-label/nixos /mnt
 btrfs subvolume create /mnt/@
 btrfs subvolume create /mnt/@home
-btrfs subvolume create /mnt/@flatpak
-#btrfs subvolume create /mnt/@nix
-btrfs subvolume create /mnt/@log
+btrfs subvolume create /mnt/@nix
 btrfs subvolume create /mnt/@swap
+btrfs subvolume create /mnt/@var
+chattr +C /mnt/@var  # disable CoW
 umount /mnt
 
 # Mounting
-printf "Mounting ...\n"
+printf "\nMounting ...\n"
 ## btrfs subvolumes
 mount -o compress=zstd,subvol=@ "${DEVICE}1" /mnt
-mkdir -p /mnt/{home,nix,swap,var/log,var/lib/flatpak}
+mkdir -p /mnt/{home,nix,swap,var}
 mount -o compress=zstd,noatime,subvol=@home "${DEVICE}1" /mnt/home
-mount -o compress=zstd,noatime,subvol=@flatpak "${DEVICE}1" /mnt/var/lib/flatpak
-#mount -o compress=zstd,noatime,subvol=@nix "${DEVICE}1" /mnt/nix
+mount -o compress=zstd,noatime,subvol=@nix "${DEVICE}1" /mnt/nix
 mount -o compress=zstd,noatime,subvol=@swap "${DEVICE}1" /mnt/swap
-mount -o compress=zstd,noatime,subvol=@log "${DEVICE}1" /mnt/var/log
-#btrfs filesystem mkswapfile --size 8G --uuid clear /mnt/swap/swapfile
-#swapon /mnt/swap/swapfile
+mount -o noatime,subvol=@var "${DEVICE}1" /mnt/var  # nodatacow with chattr +C /mnt/@var
+btrfs filesystem mkswapfile --size 4G --uuid clear /mnt/swap/swapfile
+swapon /mnt/swap/swapfile
 
 ## boot partition
 mkdir -p /mnt/boot
-mount -L boot /mnt/boot  # mount /dev/disk/by-label/boot /mnt/boot
+mount -o umask=077 -L boot /mnt/boot  # mount /dev/disk/by-label/boot /mnt/boot
 
 # Generate nix config
 nixos-generate-config --root /mnt
 
-printf "Downloading my configuration.nix ...\n"
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/configuration.nix \
-          -o /mnt/etc/nixos/configuration.nix
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/filesystems.nix \
-          -o /mnt/etc/nixos/filesystems.nix
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/gnome.nix \
-          -o /mnt/etc/nixos/gnome.nix
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/systemd.nix \
-          -o /mnt/etc/nixos/systemd.nix
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/unstable-pkgs.nix \
-          -o /mnt/etc/nixos/unstable-pkgs.nix
-sudo curl -L -s https://github.com/queeup/nixos-portable/raw/main/users.nix \
-          -o /mnt/etc/nixos/users.nix
+printf "\nDownloading my configuration.nix ...\n"
+sudo curl --silent --create-dirs --remote-name --location --output-dir /mnt/etc/nixos \
+    "https://github.com/queeup/nixos-portable/raw/main/{configuration,filesystems,gnome,systemd,unstable-pkgs,users}.nix"
 
-printf "Installing NixOS\n"
+printf "\nInstalling NixOS\n"
 nixos-install --no-root-passwd

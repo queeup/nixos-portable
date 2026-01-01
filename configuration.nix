@@ -1,6 +1,6 @@
 { config, pkgs, ... }: {
   imports = [
-    # "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/common/gpu/intel"
+    # "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/common/gpu/intel/coffee-lake"
     ./hardware-configuration.nix
     ./filesystems.nix
     ./gnome.nix
@@ -13,20 +13,18 @@
     kernelPackages = pkgs.linuxPackages_latest;  # https://nixos.wiki/wiki/Linux_kernel
     kernelParams = [
       "mitigations=off"
-      "i915.enable_fbc=1"
-      "i915.enable_guc=2"  # for intel-media-driver
-      # "i915.guc_firmware_path=${pkgs.linux-firmware}/lib/firmware/i915/"
-      "pcie_aspm=off"  # https://bbs.archlinux.org/viewtopic.php?pid=1183372#p1183372
+      #"i915.enable_fbc=1"
+      #"i915.enable_guc=2"  # for intel-media-driver
+      #"i915.guc_firmware_path=${pkgs.linux-firmware}/lib/firmware/i915/"
+      #"pcie_aspm=off"  # https://bbs.archlinux.org/viewtopic.php?pid=1183372#p1183372
                        # https://serverfault.com/questions/226319/what-does-pcie-aspm-do
                        # https://serverfault.com/a/219658
       # "usbcore.autosuspend=-1"  # for usb enclosure
       "net.ifnames=0"
     ];
-    # blacklistedKernelModules = [ "iTCO_wdt" ];  # https://wiki.archlinux.org/title/Improving_performance#Watchdogs
     # extraModprobeConfig = "options i915 enable_guc=2";
     # kernel.sysctl = { "vm.swappiness" = 10 };
-    initrd.kernelModules = [ "i915" ];
-    readOnlyNixStore = true;
+    # initrd.kernelModules = [ "i915" ];
     tmp = {
       cleanOnBoot = true;
       useTmpfs = true;
@@ -41,9 +39,12 @@
     };
   };
 
+  /*
   console = {
     keyMap = "trq";
+    keyMap = "es";
   };
+  */
 
   documentation.enable = false;
 
@@ -74,13 +75,13 @@
   };
 
   hardware = {
-    cpu.intel.updateMicrocode = true;
+    #cpu.intel.updateMicrocode = true;
     graphics = {
       enable = true;
-      extraPackages = with pkgs; [
-        intel-media-driver  # iHD
-        intel-compute-runtime  # OpenCL filter support (hardware tonemapping and subtitle burn-in)
-      ];
+      #extraPackages = with pkgs; [
+      #  intel-media-driver  # iHD
+      #  intel-compute-runtime  # OpenCL filter support (hardware tonemapping and subtitle burn-in)
+      #];
     };
   };
 
@@ -110,7 +111,7 @@
     # sudo.enable = false;
     # doas.enable = true;
     # doas.wheelNeedsPassword = false;
-    rtkit.enable = true;  # PulseAudio and PipeWire use this to acquire realtime priority.
+    # rtkit.enable = true;  # PulseAudio and PipeWire use this to acquire realtime priority.
   };
 
   services = {
@@ -128,7 +129,6 @@
     # };
     tailscale = {
       enable = true;
-      extraUpFlags = [ "--ssh" "--advertise-routes=192.168.1.0/24" ];
     };
     # hints from https://dataswamp.org/~solene/2021-12-21-my-nixos.html
     cron.systemCronJobs = [
@@ -147,11 +147,13 @@
     # autoUpgrade.allowReboot = false;
     # autoUpgrade.channel = "https://nixos.org/channels/nixos-unstable";
     # stateVersion = "unstable";
-    # autoUpgrade.channel = "https://nixos.org/channels/nixos-25.05";
-    stateVersion = "25.05";
+    # autoUpgrade.channel = "https://nixos.org/channels/nixos-25.11";
+    stateVersion = "25.11";
   };
 
-  time.timeZone = "Europe/Istanbul";
+  #time.timeZone = "Europe/Istanbul";
+  location.provider = "geoclue2";
+  services.geoclue2.enable = true;
 
   virtualisation = {
     docker = {
@@ -159,9 +161,15 @@
       storageDriver = "btrfs";
       liveRestore = false;  # https://github.com/NixOS/nixpkgs/issues/182916
     };
-    # podman = {
-    #   enable = true;
-    #   dockerSocket.enable = true;
-    # };
+    /*
+    podman = {
+      enable = true;
+      autoPrune.enable = true;
+      autoPrune.dates = "weekly";
+      dockerCompat = true;
+      dockerSocket.enable = true;
+      extraPackages = [ pkgs.podman-compose ]
+    };
+    */
   };
 }

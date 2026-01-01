@@ -1,10 +1,9 @@
 {
   users = {
     mutableUsers = false;
-    users.zgr = {
+    users.user = {
       isNormalUser = true;
       initialHashedPassword = "$y$j9T$P1mFfsiwDtUFeuVUIRSmt/$enBCo06VCCq804jbnzJRBQnqR1fZgjKmO.ESVoWhAN3";  # printf password | mkpasswd -s
-      home = "/home/zgr";
       extraGroups = [
         "networkmanager"
         "wheel"
@@ -21,4 +20,13 @@
       # ];
     };
   };
+
+  programs.dconf.profiles.user.databases = [
+    {
+      #lockAll = true; # prevents overriding
+      settings = {
+        "org/gnome/desktop/interface".color-scheme = "prefer-dark";
+      };
+    }
+  ];
 }

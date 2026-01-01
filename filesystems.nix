@@ -2,14 +2,14 @@
   fileSystems = {
     "/".options = [ "subvol=@" "compress=zstd" "noatime" ];
     "/home".options = [ "subvol=@home" "compress=zstd" "noatime" ];
-    # "/nix".options = [ "subvol=@nix" "compress=zstd" "noatime" ];
+    "/nix".options = [ "subvol=@nix" "compress=zstd" "noatime" ];
     "/swap".options = [ "subvol=@swap" ];
-    "/var/log".options = [ "subvol=@log" "compress=zstd" "noatime" ];
+    "/var".options = [ "subvol=@var" "noatime" ];
   };
   swapDevices = [
     {
       device = "/swap/swapfile";
-      size = 8 * 1024; # 8GB} ];
+      size = 4 * 1024; # 4GB
     }
   ];
 }

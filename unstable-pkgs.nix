@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ config, lib, ... }:
 
 let
   unstable = import
@@ -10,14 +10,14 @@ let
     { config = config.nixpkgs.config; };
 in
 
-{
+rec {
   environment = {
-    systemPackages = with pkgs; [
-      unstable.hishtory
-      unstable.tailscale
+    systemPackages = with unstable; [
+      hishtory
+      tailscale
     ];
     # Dont use loginShellInit. bind: command not found
-    interactiveShellInit = ''
+    interactiveShellInit = lib.mkIf (builtins.elem unstable.hishtory environment.systemPackages) ''
       # hiSHtory: https://github.com/ddworken/hishtory
       if [ ! -d ".hishtory" ]; then
         ${unstable.hishtory}/bin/hishtory init
@@ -30,6 +30,6 @@ in
       # source $(nix --extra-experimental-features "nix-command flakes" eval -f '<nixpkgs>' --raw 'hishtory')/share/his>
     '';
   };
-  
-  services.tailscale.package = unstable.tailscale;
+
+  services.tailscale.package = lib.mkIf (lib.elem unstable.tailscale environment.systemPackages) unstable.tailscale;
 }
