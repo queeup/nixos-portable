@@ -1,13 +1,8 @@
 # My nixos portable config and installation script
 
-## Requirements
-
-- UEFI
-- Intel CPU gen > 8
-
-## Warning
-
-**Do not use it. It will erase your harddisk device without asking.**
+> [!Warning]
+> **Do not use it. It will erase your harddisk device without asking.**  
+> **Hardware configuration is special for my own hardware**
 
 ## Install
 

@@ -13,21 +13,14 @@ in
 rec {
   environment = {
     systemPackages = with unstable; [
-      hishtory
+      atuin
+      bash-preexec
       tailscale
     ];
-    # Dont use loginShellInit. bind: command not found
-    interactiveShellInit = lib.mkIf (builtins.elem unstable.hishtory environment.systemPackages) ''
-      # hiSHtory: https://github.com/ddworken/hishtory
-      if [ ! -d ".hishtory" ]; then
-        ${unstable.hishtory}/bin/hishtory init
-        ${unstable.hishtory}/bin/hishtory config-set filter-duplicate-commands true
-        ${unstable.hishtory}/bin/hishtory config-set displayed-columns Hostname Timestamp Command
-        ${unstable.hishtory}/bin/hishtory config-set timestamp-format '2006/01/25 15:04'
-      fi
-      source ${unstable.hishtory}/share/hishtory/config.sh
-      source <(${unstable.hishtory}/bin/hishtory completion bash)
-      # source $(nix --extra-experimental-features "nix-command flakes" eval -f '<nixpkgs>' --raw 'hishtory')/share/his>
+    interactiveShellInit = lib.mkIf (builtins.elem unstable.atuin environment.systemPackages) ''
+      source ${unstable.bash-preexec}/share/bash/bash-preexec.sh
+      # source ${unstable.blesh}/share/blesh/ble.sh
+      eval "$(${unstable.atuin}/bin/atuin init bash)"
     '';
   };
 

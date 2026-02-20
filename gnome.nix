@@ -7,8 +7,11 @@
       # sed -i 's/\[Desktop Entry\]/\[Desktop Entry\]\nNoDisplay=1/' $out/share/applications/org.gnome.Extensions.desktop
       # sed -i 's/Exec=.*/Exec=/' $out/share/applications/org.gnome.Extensions.desktop
       # sed -i 's/\[Desktop Entry\]/\[Desktop Entry\]\nNoDisplay=1/' $out/share/applications/org.gnome.Shell.Extensions.desktop
-      sed -i -E 's|^(Name([[a-zA-Z_]+])?)=Ptyxis$|\1=Terminal|' $out/share/applications/org.gnome.Ptyxis.desktop
+      # sed -i -E 's|^(Name([[a-zA-Z_]+])?)=Ptyxis$|\1=Terminal|' $out/share/applications/org.gnome.Ptyxis.desktop
       # rm $out/share/applications/cups.desktop
+      # ${pkgs.desktop-file-utils}/bin/desktop-file-edit --set-key="Name" --set-value="Terminal" "$out/share/applications/org.gnome.Ptyxis.desktop"
+      ${pkgs.desktop-file-utils}/bin/desktop-file-edit --set-key="OnlyShowIn" --set-value="" "$out/share/applications/org.gnome.Shell.Extensions.desktop"
+      ${pkgs.desktop-file-utils}/bin/desktop-file-edit --set-key="OnlyShowIn" --set-value="" "$out/share/applications/org.gnome.Extensions.desktop"
     '';
     gnome.excludePackages = with pkgs; [
       gnome-tour
@@ -16,7 +19,8 @@
     ];
     systemPackages = with pkgs; [
       nautilus
-      ptyxis
+      # ptyxis
+      ghostty
     ];
     interactiveShellInit = ''
       export LC_MESSAGES=C.UTF-8  # for terminal messages

@@ -1,6 +1,8 @@
 { config, pkgs, ... }: {
   imports = [
     # "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/common/gpu/intel/coffee-lake"
+    # "${builtins.fetchTarball "https://github.com/NixOS/nixos-hardware/archive/master.tar.gz"}/common/gpu/intel/coffee-lake"
+    # <nixos-hardware/common/gpu/intel/coffee-lake>
     ./hardware-configuration.nix
     ./filesystems.nix
     ./gnome.nix
@@ -10,17 +12,23 @@
   ];
 
   boot = {
+    # Enable "Silent boot" https://wiki.nixos.org/wiki/Plymouth
+    plymouth.enable = true;
+    consoleLogLevel = 3;
+    initrd.verbose = false;
     kernelPackages = pkgs.linuxPackages_latest;  # https://nixos.wiki/wiki/Linux_kernel
     kernelParams = [
-      "mitigations=off"
-      #"i915.enable_fbc=1"
-      #"i915.enable_guc=2"  # for intel-media-driver
-      #"i915.guc_firmware_path=${pkgs.linux-firmware}/lib/firmware/i915/"
-      #"pcie_aspm=off"  # https://bbs.archlinux.org/viewtopic.php?pid=1183372#p1183372
+      "udev.log_level=3"
+      "systemd.show_status=auto"
+      # "mitigations=off"
+      # "i915.enable_fbc=1"
+      # "i915.enable_guc=2"  # for intel-media-driver
+      # "i915.guc_firmware_path=${pkgs.linux-firmware}/lib/firmware/i915/"
+      # "pcie_aspm=off"  # https://bbs.archlinux.org/viewtopic.php?pid=1183372#p1183372
                        # https://serverfault.com/questions/226319/what-does-pcie-aspm-do
                        # https://serverfault.com/a/219658
       # "usbcore.autosuspend=-1"  # for usb enclosure
-      "net.ifnames=0"
+      # "net.ifnames=0"
     ];
     # extraModprobeConfig = "options i915 enable_guc=2";
     # kernel.sysctl = { "vm.swappiness" = 10 };
@@ -69,7 +77,6 @@
       # sudo = "doas";
     };
     systemPackages = with pkgs; [
-      # hishtory  # enabled on unstable-pkgs.nix
       duf
     ];
   };
@@ -111,7 +118,6 @@
     # sudo.enable = false;
     # doas.enable = true;
     # doas.wheelNeedsPassword = false;
-    # rtkit.enable = true;  # PulseAudio and PipeWire use this to acquire realtime priority.
   };
 
   services = {
@@ -143,15 +149,9 @@
   };
 
   system = {
-    # autoUpgrade.enable = true;
-    # autoUpgrade.allowReboot = false;
-    # autoUpgrade.channel = "https://nixos.org/channels/nixos-unstable";
-    # stateVersion = "unstable";
-    # autoUpgrade.channel = "https://nixos.org/channels/nixos-25.11";
     stateVersion = "25.11";
   };
 
-  #time.timeZone = "Europe/Istanbul";
   location.provider = "geoclue2";
   services.geoclue2.enable = true;
 

@@ -1,5 +1,5 @@
 { pkgs, ...}: {
-  systemd.services.flatpak-repo = {
+  systemd.services.flatpak-add-repo = {
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
@@ -16,12 +16,12 @@
     };
   };
 
-  systemd.services.flatpak-apps = {
+  systemd.services.flatpak-install-apps = {
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     unitConfig = {
       ConditionPathExists = [
-        "/var/lib/flatpak-repo.stamp"
+        "/var/lib/flatpak-add-repo.stamp"
         "!/var/lib/%N.stamp"
       ];
     };
